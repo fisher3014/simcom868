@@ -93,14 +93,15 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
 
-  GPRS_Parameter_init();
-  gprs_start_communicate();
+	// need to add user reponse deal code
+  gprs_init(NULL);
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
     gprs_response_data_deal();
+    gprs_http_request_send("{\"ID\":\"FBDE94A7AB6C\",\"Token\":\"0123456789012345\",\"CSQ\":\"16\",\"IMSI\":\"\",\"SIMVer\":\"418B03SIM868M32\",\"SPAddr\":\"\",\"ACTION\":\"0\",\"MCUVer\":\"ofoV1.0.8\",\"Vot\":\"7393\",\"3D\":\"0,0,0\",\"sa\":\"wljeFnnIzYSOpDACLsUzFw==\",\"STTime\":\"1483228800\",\"SPTime\":\"1483228800\",\"PWD\":\"\"}");
   }
 }
 

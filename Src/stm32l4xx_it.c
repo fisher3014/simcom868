@@ -201,7 +201,7 @@ void USART2_IRQHandler(void)
     if((USART2->ISR&UART_FLAG_RXNE) != 0)
     { 
             RxBuf = USART2->RDR;
-            uart_rx_data_deal(RxBuf);
+            gprs_uart_rx_data_deal(RxBuf);
 						//USART2->TDR = RxBuf;
        // USART2_SendByte(USART1->RDR);
     }
