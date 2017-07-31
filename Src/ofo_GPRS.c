@@ -107,7 +107,7 @@ typedef struct{
     char responseBuffer[RESPONSE_DATA_LEN];
     httpResponseDeal httpResUserFunc;
     gprs_info_t gprsInfo;
-}gprsPara_t;
+}gprs_para_t;
 
 static void _at_request_cmd(atCmdId_e cmdId);
 static void _at_dummy_deal(void);
@@ -147,10 +147,10 @@ static void _gprs_power_off(void);
 static void _gprs_uart_init(void);
 static void _gprs_sleep_ms(int timeMs);
 
-TIM_HandleTypeDef gprsTimerId;
-UART_HandleTypeDef huart2;
+static TIM_HandleTypeDef gprsTimerId;
+static UART_HandleTypeDef huart2;
 
-static gprsPara_t gGprsPara;
+static gprs_para_t gGprsPara;
 
 atCmdCenter_t gAtCmdCenter[AT_MAX_CMD] = {
         {AT_INVALID_CMD,            NULL,                                               _at_request_cmd,  _at_dummy_deal,                    {0,   0,   CMD_RESULT_INIT}},
@@ -185,7 +185,8 @@ gprs_info_t *gprs_get_info(void)
     return &(gGprsPara.gprsInfo);
 }
 
-static void _gprs_sleep_ms(int timeMs)
+// should be define in public file TBC
+void _gprs_sleep_ms(int timeMs)
 {
     HAL_Delay(timeMs);
 }
@@ -817,11 +818,16 @@ static void _gprs_stop_timer(void)
   }
 }
 
+static void _gprs_uart_disable(void)
+{
+    __HAL_UART_DISABLE_IT(&huart2,UART_IT_RXNE);
+}
+
 int gprs_close(void)
 {
     //事件开始
     gGprsPara.currentCmdId = AT_INVALID_CMD; //无效
-    __HAL_UART_DISABLE_IT(&huart2,UART_IT_RXNE);
+    _gprs_uart_disable();
     //100ms start
     _gprs_stop_timer();
     //osTimerStop(GPRS_timer_id);

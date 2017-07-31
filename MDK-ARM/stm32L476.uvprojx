@@ -409,6 +409,11 @@
               <FileType>1</FileType>
               <FilePath>..\Src\ofo_GPRS.c</FilePath>
             </File>
+            <File>
+              <FileName>ofo_GPS.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\ofo_GPS.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

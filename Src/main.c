@@ -39,6 +39,8 @@
 #include "main.h"
 #include "stm32l4xx_hal.h"
 #include "ofo_GPRS.h"
+#include "ofo_GPS.h"
+
 
 /* USER CODE BEGIN Includes */
 
@@ -94,14 +96,15 @@ int main(void)
   MX_GPIO_Init();
 
 	// need to add user reponse deal code
-  gprs_init(NULL);
+  //gprs_init(NULL);
+  gps_init();
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    gprs_response_data_deal();
-    gprs_http_request_send("{\"ID\":\"FBDE94A7AB6C\",\"Token\":\"0123456789012345\",\"CSQ\":\"16\",\"IMSI\":\"\",\"SIMVer\":\"418B03SIM868M32\",\"SPAddr\":\"\",\"ACTION\":\"0\",\"MCUVer\":\"ofoV1.0.8\",\"Vot\":\"7393\",\"3D\":\"0,0,0\",\"sa\":\"wljeFnnIzYSOpDACLsUzFw==\",\"STTime\":\"1483228800\",\"SPTime\":\"1483228800\",\"PWD\":\"\"}");
+    //gprs_response_data_deal();
+    //gprs_http_request_send("{\"ID\":\"FBDE94A7AB6C\",\"Token\":\"0123456789012345\",\"CSQ\":\"16\",\"IMSI\":\"\",\"SIMVer\":\"418B03SIM868M32\",\"SPAddr\":\"\",\"ACTION\":\"0\",\"MCUVer\":\"ofoV1.0.8\",\"Vot\":\"7393\",\"3D\":\"0,0,0\",\"sa\":\"wljeFnnIzYSOpDACLsUzFw==\",\"STTime\":\"1483228800\",\"SPTime\":\"1483228800\",\"PWD\":\"\"}");
   }
 }
 

@@ -35,6 +35,7 @@
 #include "stm32l4xx.h"
 #include "stm32l4xx_it.h"
 #include "ofo_GPRS.h"
+#include "ofo_GPS.h"
 
 
 /* USER CODE BEGIN 0 */
@@ -201,7 +202,10 @@ void USART2_IRQHandler(void)
     if((USART2->ISR&UART_FLAG_RXNE) != 0)
     { 
             RxBuf = USART2->RDR;
-            gprs_uart_rx_data_deal(RxBuf);
+            //gprs test
+            //gprs_uart_rx_data_deal(RxBuf);
+
+            gps_uart_rx_data_deal(RxBuf);
 						//USART2->TDR = RxBuf;
        // USART2_SendByte(USART1->RDR);
     }
