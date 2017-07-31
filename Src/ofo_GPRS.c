@@ -101,6 +101,7 @@ typedef struct{
     uint16_t gprsDelayCnt;  // 0 is not delay, any others do delay 1 == 100ms
     atCmdId_e currentCmdId;
     uint8_t isGetServerData;
+    uint8_t isGprsSleeping;
     gprs_status_e gprsStatus;
     char requestBuffer[REQUEST_DATA_LEN];
     char responseBuffer[RESPONSE_DATA_LEN];
@@ -141,7 +142,6 @@ static void _gprs_establish_connection(void);
 static void _gprs_timer_handler(void);
 static int _string_find(const char *pSrc, const char *pDst);
 static void _gprs_uart_send_data(char *SendData, uint16_t SendLen);
-static void _gprs_close(uint8_t isCloseGPRS);
 static void _gprs_power_on(void);
 static void _gprs_power_off(void);
 static void _gprs_uart_init(void);
@@ -239,7 +239,7 @@ static void _at_request_cmd(atCmdId_e cmdId)
             if (AT_CFUN_ENTER_CMD == cmdId || AT_CFUN1_EXIT_CMD == cmdId)
             {
                 // reboot gprs
-                _gprs_close(1);
+                gprs_close();
                 _gprs_establish_connection();
                 tmpCmdID = AT_INVALID_CMD;
             }
@@ -610,7 +610,8 @@ static void _at_enter_sleep_response_deal(void)
     if (strstr(gGprsPara.responseBuffer, "OK\r\n") != NULL)
     {
 		memset(gGprsPara.responseBuffer, 0, sizeof(gGprsPara.responseBuffer));
-        _gprs_close(0);
+        gGprsPara.isGprsSleeping = 1;
+        gprs_close();
     }   
 }
 
@@ -685,7 +686,7 @@ void gprs_response_data_deal(void)
                     {
                         postTimes = 0;
                         gGprsPara.currentCmdId = AT_INVALID_CMD;
-                        _gprs_close(1);
+                        gprs_close();
                         _gprs_establish_connection();
                     }
                     else
@@ -816,8 +817,7 @@ static void _gprs_stop_timer(void)
   }
 }
 
-//关闭串口通信
-static void _gprs_close(uint8_t isCloseGPRS)
+int gprs_close(void)
 {
     //事件开始
     gGprsPara.currentCmdId = AT_INVALID_CMD; //无效
@@ -828,8 +828,15 @@ static void _gprs_close(uint8_t isCloseGPRS)
 
     _gprs_sleep_ms(50);
     //睡眠的状态下不关闭模块
-    if (isCloseGPRS == 1)
+    if (gGprsPara.isGprsSleeping == 0)
+    {
         _gprs_power_off();
+        return 0;
+    }
+    else
+    {
+        return 1;
+    }
 }
 
 static void _gprs_uart_init(void)
