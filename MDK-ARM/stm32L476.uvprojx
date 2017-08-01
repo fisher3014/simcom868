@@ -335,7 +335,7 @@
               <MiscControls>--C99</MiscControls>
               <Define>USE_HAL_DRIVER,STM32L476xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;../Drivers/STM32L4xx_HAL_Driver/Inc;../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32L4xx/Include;../Drivers/CMSIS/Include;..\Inc;..\Src</IncludePath>
+              <IncludePath>../Inc;../Drivers/STM32L4xx_HAL_Driver/Inc;../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32L4xx/Include;../Drivers/CMSIS/Include;..\Src</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -395,24 +395,19 @@
               <FilePath>../Src/stm32l4xx_it.c</FilePath>
             </File>
             <File>
-              <FileName>base64.c</FileName>
+              <FileName>ofo_gprs.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\base64.c</FilePath>
+              <FilePath>..\Src\ofo_gprs.c</FilePath>
             </File>
             <File>
-              <FileName>json_utils.c</FileName>
+              <FileName>ofo_gps.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\json_utils.c</FilePath>
+              <FilePath>..\Src\ofo_gps.c</FilePath>
             </File>
             <File>
-              <FileName>ofo_GPRS.c</FileName>
+              <FileName>ofo_porting.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\ofo_GPRS.c</FilePath>
-            </File>
-            <File>
-              <FileName>ofo_GPS.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\ofo_GPS.c</FilePath>
+              <FilePath>..\Src\ofo_porting.c</FilePath>
             </File>
           </Files>
         </Group>

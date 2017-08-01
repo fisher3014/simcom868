@@ -34,8 +34,8 @@
 #include "stm32l4xx_hal.h"
 #include "stm32l4xx.h"
 #include "stm32l4xx_it.h"
-#include "ofo_GPRS.h"
-#include "ofo_GPS.h"
+#include "ofo_gprs.h"
+#include "ofo_gps.h"
 
 
 /* USER CODE BEGIN 0 */
@@ -186,35 +186,7 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32l4xx.s).                    */
 /******************************************************************************/
-uint8_t RxBuf;
-/**
-* @brief This function handles USART1 global interrupt.
-*/
-void USART2_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART1_IRQn 0 */
-   if((USART2->ISR&UART_FLAG_ORE) != 0)
-    { 
-        USART2->ICR = UART_CLEAR_OREF;
-        /* do something */
-        
-    }
-    if((USART2->ISR&UART_FLAG_RXNE) != 0)
-    { 
-            RxBuf = USART2->RDR;
-            //gprs test
-            //gprs_uart_rx_data_deal(RxBuf);
 
-            gps_uart_rx_data_deal(RxBuf);
-						//USART2->TDR = RxBuf;
-       // USART2_SendByte(USART1->RDR);
-    }
-  /* USER CODE END USART1_IRQn 0 */
- // HAL_UART_IRQHandler(&huart1);
-  /* USER CODE BEGIN USART1_IRQn 1 */
-
-  /* USER CODE END USART1_IRQn 1 */
-}
 
 /* USER CODE BEGIN 1 */
 

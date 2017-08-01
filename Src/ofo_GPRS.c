@@ -1,9 +1,8 @@
 #include <string.h>
-#include "ofo_GPRS.h"
-#include "stm32l4xx_hal.h"
-#include "json_utils.h"
-#include "base64.h"
-#include "stm32l4xx_hal_tim.h"
+#include <stdio.h>
+#include "ofo_gprs.h"
+#include "ofo_porting.h"
+
 
 #define DEBUG_SERVER_GPRS
 
@@ -90,8 +89,6 @@ typedef struct{
 }atCmdCenter_t;
 
 typedef enum{
-  GPRS_POWER_OFF = 0,
-  GPRS_POWER_ON,
   GPRS_INITING,   //establishing connection
   GPRS_READY,
   GPRS_SENDING,
@@ -136,19 +133,10 @@ static void _at_cfun1_exit_response_deal(void);
 static void _at_enter_sleep_response_deal(void);
 static void _at_httpterm_response_deal(void);
 
-static void _gprs_uart_send_timer_creat(void);
 static void _gprs_establish_connection(void);
 
 static void _gprs_timer_handler(void);
 static int _string_find(const char *pSrc, const char *pDst);
-static void _gprs_uart_send_data(char *SendData, uint16_t SendLen);
-static void _gprs_power_on(void);
-static void _gprs_power_off(void);
-static void _gprs_uart_init(void);
-static void _gprs_sleep_ms(int timeMs);
-
-static TIM_HandleTypeDef gprsTimerId;
-static UART_HandleTypeDef huart2;
 
 static gprs_para_t gGprsPara;
 
@@ -180,15 +168,9 @@ atCmdCenter_t gAtCmdCenter[AT_MAX_CMD] = {
         {AT_HTTPTERM_CMD,           "AT+HTTPTERM\r\n",                                  _at_request_cmd, _at_httpterm_response_deal,        {5,   2,   CMD_RESULT_INIT}},
     };
 
-gprs_info_t *gprs_get_info(void)
+gprs_info_t *ofoE_gprs_get_info(void)
 {
     return &(gGprsPara.gprsInfo);
-}
-
-// should be define in public file TBC
-void _gprs_sleep_ms(int timeMs)
-{
-    HAL_Delay(timeMs);
 }
 
 static void _at_config_http_content_len(void)
@@ -196,12 +178,12 @@ static void _at_config_http_content_len(void)
     static char tmpBuf[30] = {0};
 
     sprintf(tmpBuf, "%s%d,10000\r\n", gAtCmdCenter[AT_HTTPPOST_PRE_CMD].pCmdStr, strlen(gGprsPara.requestBuffer));
-    _gprs_uart_send_data(tmpBuf, strlen(tmpBuf));
+    ofoP_gprs_uart_send(tmpBuf, strlen(tmpBuf));
 }
 
 static void _at_send_post_data_to_module(void)
 {
-    _gprs_uart_send_data(gGprsPara.requestBuffer, strlen(gGprsPara.requestBuffer));
+    ofoP_gprs_uart_send(gGprsPara.requestBuffer, strlen(gGprsPara.requestBuffer));
 }
 
 static void _at_request_cmd(atCmdId_e cmdId)
@@ -240,7 +222,7 @@ static void _at_request_cmd(atCmdId_e cmdId)
             if (AT_CFUN_ENTER_CMD == cmdId || AT_CFUN1_EXIT_CMD == cmdId)
             {
                 // reboot gprs
-                gprs_close();
+                ofoE_gprs_close();
                 _gprs_establish_connection();
                 tmpCmdID = AT_INVALID_CMD;
             }
@@ -272,7 +254,7 @@ static void _at_request_cmd(atCmdId_e cmdId)
         }
         else
         {
-            _gprs_uart_send_data(gAtCmdCenter[cmdId].pCmdStr, strlen(gAtCmdCenter[cmdId].pCmdStr));
+            ofoP_gprs_uart_send(gAtCmdCenter[cmdId].pCmdStr, strlen(gAtCmdCenter[cmdId].pCmdStr));
         }
 
         sendCnts++;
@@ -561,7 +543,7 @@ static void _at_httppost_action_response_deal(void)
     {
         if (strstr(gGprsPara.responseBuffer, "+HTTPACTION: 1,200") != NULL)
         {
-            //how to update fw  TODO
+            // TODO: how to fw up
             /*
 						memset(gGprsPara.responseBuffer, 0, sizeof(gGprsPara.responseBuffer));
             gGprsPara.currentCmdId = AT_HTTPTERM_CMD;*/
@@ -612,7 +594,7 @@ static void _at_enter_sleep_response_deal(void)
     {
 		memset(gGprsPara.responseBuffer, 0, sizeof(gGprsPara.responseBuffer));
         gGprsPara.isGprsSleeping = 1;
-        gprs_close();
+        ofoE_gprs_close();
     }   
 }
 
@@ -656,16 +638,8 @@ static void _gprs_timer_handler(void)
     _gprs_cmd_deal(gGprsPara.currentCmdId);  
 }
 
-void TIM3_IRQHandler(void)
-{
-    HAL_TIM_IRQHandler(&gprsTimerId);
-
-    _gprs_timer_handler();
-}
-
-
 //GPRS 进程处理 定时器发送at指令 两个ID分开
-void gprs_response_data_deal(void)
+void ofoE_gprs_response_data_deal(void)
 {
     int ret = 0;
 
@@ -687,7 +661,7 @@ void gprs_response_data_deal(void)
                     {
                         postTimes = 0;
                         gGprsPara.currentCmdId = AT_INVALID_CMD;
-                        gprs_close();
+                        ofoE_gprs_close();
                         _gprs_establish_connection();
                     }
                     else
@@ -706,7 +680,7 @@ void gprs_response_data_deal(void)
     }
 }
 
-void gprs_uart_rx_data_deal(uint8_t rxData)
+static void gprs_uart_rx_data_deal(uint8_t rxData)
 {
     static uint16_t index = 0;
     static uint8_t isStartGetData = 0;
@@ -766,30 +740,22 @@ void gprs_uart_rx_data_deal(uint8_t rxData)
     }
 }
 
-static void _gprs_uart_send_data(char *SendData, uint16_t SendLen)
-{
-    if(HAL_UART_Transmit(&huart2, (uint8_t*)SendData, SendLen,100)!= HAL_OK)
-    {
-        Error_Handler();
-    }
-}
-
 //GPRS Parameter init
-void gprs_init(httpResponseDeal userFunc)
+void ofoE_gprs_init(httpResponseDeal userFunc)
 {
     gGprsPara.httpResUserFunc = userFunc;
 
     // uart between gprs module and mcu init
-    _gprs_uart_init();
+    ofoP_gprs_uart_init(gprs_uart_rx_data_deal);
     
     // at cmd send, timer is 100ms
-    _gprs_uart_send_timer_creat();
+    ofoP_gprs_uart_send_timer_creat(_gprs_timer_handler, 100);
 
     // just connect server, don't send http cmd
     _gprs_establish_connection();
 }
 
-int gprs_http_request_send(char * pData)
+int ofoE_gprs_http_request_send(char * pData)
 {
     if (pData == NULL)
     {
@@ -809,34 +775,22 @@ int gprs_http_request_send(char * pData)
     return -2;
 }
 
-static void _gprs_stop_timer(void)
-{
-    if (HAL_TIM_Base_Stop_IT(&gprsTimerId) != HAL_OK)
-  {
-    /* Starting Error */
-    Error_Handler();
-  }
-}
 
-static void _gprs_uart_disable(void)
-{
-    __HAL_UART_DISABLE_IT(&huart2,UART_IT_RXNE);
-}
 
-int gprs_close(void)
+int ofoE_gprs_close(void)
 {
     //事件开始
     gGprsPara.currentCmdId = AT_INVALID_CMD; //无效
-    _gprs_uart_disable();
-    //100ms start
-    _gprs_stop_timer();
+    ofoP_gprs_uart_disable();
+    //100ms stop
+    ofoP_gprs_stop_timer();
     //osTimerStop(GPRS_timer_id);
 
-    _gprs_sleep_ms(50);
+    ofoP_sleep_ms(50);
     //睡眠的状态下不关闭模块
     if (gGprsPara.isGprsSleeping == 0)
     {
-        _gprs_power_off();
+        ofoP_gprs_power_off();
         return 0;
     }
     else
@@ -845,94 +799,10 @@ int gprs_close(void)
     }
 }
 
-static void _gprs_uart_init(void)
-{
-    huart2.Instance = USART2;
-    huart2.Init.BaudRate = 115200;
-    huart2.Init.WordLength = UART_WORDLENGTH_8B;
-    huart2.Init.StopBits = UART_STOPBITS_1;
-    huart2.Init.Parity = UART_PARITY_NONE;
-    huart2.Init.Mode = UART_MODE_TX_RX;
-    huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-    huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-    huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
-    if (HAL_UART_Init(&huart2) != HAL_OK)
-    {
-        _Error_Handler(__FILE__, __LINE__);
-    }
-}
-
-static void _gprs_uart_enable(void)
-{
-    __HAL_UART_ENABLE_IT(&huart2,UART_IT_RXNE);
-}
-
-static void _gprs_power_on(void)
-{
-    gGprsPara.gprsStatus = GPRS_POWER_ON;
-//for formal pcba, not for develop kit
-/*
-    nrf_gpio_cfg_output(UG_EN_PIN);
-    nrf_gpio_cfg_output(UG_PWRKEY);
-    //sleep pin
-    nrf_gpio_cfg_output(UG_DTR_PIN);
-    //
-    nrf_gpio_pin_set(UG_EN_PIN);
-    _gprs_sleep_ms(200);
-    nrf_gpio_pin_set(UG_PWRKEY);*/
-}
-
-static void _gprs_timer_start(void)
-{
-    // start 100ms timer
-    if (HAL_TIM_Base_Start_IT(&gprsTimerId) != HAL_OK)
-    {
-        /* Starting Error */
-        Error_Handler();
-    }
-
-}
-
-static void _gprs_uart_send_timer_creat(void)
-{
-    uint32_t uwPrescalerValue = 0;
-
-  __HAL_RCC_TIM3_CLK_ENABLE();
-  /*##-2- Configure the NVIC for TIMx ########################################*/
-  /* Set the TIMx priority */
-      HAL_NVIC_SetPriority(TIM3_IRQn, 3, 0);
-
-      /* Enable the TIMx global Interrupt */
-      HAL_NVIC_EnableIRQ(TIM3_IRQn);
-    
-    uwPrescalerValue = 6400 - 1; // 64m / 6400 = 10k
-
-    gprsTimerId.Instance = TIM3;
-
-    gprsTimerId.Init.Period            = 1000 - 1;
-    gprsTimerId.Init.Prescaler         = uwPrescalerValue;
-    gprsTimerId.Init.ClockDivision     = 0;
-    gprsTimerId.Init.CounterMode       = TIM_COUNTERMODE_UP;
-    gprsTimerId.Init.RepetitionCounter = 0;
-
-    if (HAL_TIM_Base_Init(&gprsTimerId) != HAL_OK)
-    {
-        /* Initialization Error */
-        Error_Handler();
-    }
-
-    if (HAL_TIM_Base_Start(&gprsTimerId) != HAL_OK)
-    {
-      /* Starting Error */
-      Error_Handler();
-    }
-}
-
 static void _gprs_establish_connection(void)
 {
-    _gprs_power_on();
-    _gprs_sleep_ms(100);
+    ofoP_gprs_power_on();
+    ofoP_sleep_ms(100);
 
     // init parameters
     gGprsPara.isGetServerData = 0;
@@ -940,22 +810,8 @@ static void _gprs_establish_connection(void)
     gGprsPara.gprsStatus = GPRS_INITING;
     gGprsPara.currentCmdId = AT_LINK_CHECK_CMD;
 
-    _gprs_uart_enable();
-    _gprs_timer_start();
+    ofoP_gprs_uart_enable();
+    ofoP_gprs_timer_start();
     
-}
-
-static void _gprs_power_off(void)
-{
-    gGprsPara.gprsStatus = GPRS_POWER_OFF;
-/*
-    nrf_gpio_pin_set(Green_LED_PIN);    //Green LED OFF
-    nrf_gpio_cfg_output(UG_PWEDWN);
-    nrf_gpio_cfg_output(UG_EN_PIN);
-    nrf_gpio_pin_set(UG_PWEDWN);
-    _gprs_sleep_ms(100);
-    nrf_gpio_pin_clear(UG_PWEDWN);
-    _gprs_sleep_ms(2);
-    nrf_gpio_pin_clear(UG_EN_PIN);*/
 }
 

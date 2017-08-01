@@ -14,12 +14,10 @@ typedef struct
     BOOL isvalid;
 }gps_info_t;
 
-extern void gps_init(void);
+extern void ofoE_gps_init(void);
 
-extern void gps_close(void);
+extern void ofoE_gps_close(void);
 
-extern gps_info_t *gps_get_info(void);
-
-extern void gps_uart_rx_data_deal(uint8_t rxData);
+extern gps_info_t *ofoE_gps_get_info(void);
 
 #endif
