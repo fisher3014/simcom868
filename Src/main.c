@@ -96,15 +96,15 @@ int main(void)
   MX_GPIO_Init();
 
 	// need to add user reponse deal code
-  //ofoE_gprs_init(NULL);
+  ofoE_gprs_init(NULL);
   ofoE_gps_init();
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    //ofoE_gprs_response_data_deal();
-    //ofoE_gprs_http_request_send("{\"ID\":\"FBDE94A7AB6C\",\"Token\":\"0123456789012345\",\"CSQ\":\"16\",\"IMSI\":\"\",\"SIMVer\":\"418B03SIM868M32\",\"SPAddr\":\"\",\"ACTION\":\"0\",\"MCUVer\":\"ofoV1.0.8\",\"Vot\":\"7393\",\"3D\":\"0,0,0\",\"sa\":\"wljeFnnIzYSOpDACLsUzFw==\",\"STTime\":\"1483228800\",\"SPTime\":\"1483228800\",\"PWD\":\"\"}");
+    ofoE_gprs_response_data_deal();
+    ofoE_gprs_http_request_send("{\"ID\":\"FBDE94A7AB6C\",\"Token\":\"0123456789012345\",\"CSQ\":\"16\",\"IMSI\":\"\",\"SIMVer\":\"418B03SIM868M32\",\"SPAddr\":\"\",\"ACTION\":\"0\",\"MCUVer\":\"ofoV1.0.8\",\"Vot\":\"7393\",\"3D\":\"0,0,0\",\"sa\":\"wljeFnnIzYSOpDACLsUzFw==\",\"STTime\":\"1483228800\",\"SPTime\":\"1483228800\",\"PWD\":\"\"}");
   }
 }
 
@@ -175,11 +175,44 @@ void SystemClock_Config(void)
 }
 
 
+void ofo_gprs_power_on_contorl_pin_init(void)
+{   
+    GPIO_InitTypeDef  GPIO_InitStruct;   
+    __HAL_RCC_GPIOA_CLK_ENABLE(); 
+    __HAL_RCC_GPIOE_CLK_ENABLE();
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);  
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_RESET);
+
+    GPIO_InitStruct.Pin       = GPIO_PIN_8;  
+    GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;  
+    GPIO_InitStruct.Pull      = GPIO_NOPULL;  
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;  
+    HAL_GPIO_Init(GPIOA , &GPIO_InitStruct);
+    GPIO_InitStruct.Pin       = GPIO_PIN_8;  
+    GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;  
+    GPIO_InitStruct.Pull      = GPIO_NOPULL;  
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;  
+    HAL_GPIO_Init(GPIOE , &GPIO_InitStruct);
+    // gprs
+    GPIO_InitStruct.Pin       = GPIO_PIN_4;  
+    GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;  
+    GPIO_InitStruct.Pull      = GPIO_NOPULL;  
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;  
+    HAL_GPIO_Init(GPIOA , &GPIO_InitStruct);
+    GPIO_InitStruct.Pin       = GPIO_PIN_7;  
+    GPIO_InitStruct.Mode      = GPIO_MODE_OUTPUT_PP;  
+    GPIO_InitStruct.Pull      = GPIO_NOPULL;  
+    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_VERY_HIGH;  
+    HAL_GPIO_Init(GPIOE , &GPIO_InitStruct);
+}
+
 /** Pinout Configuration
 */
 static void MX_GPIO_Init(void)
 {
-
+  ofo_gprs_power_on_contorl_pin_init();
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
 

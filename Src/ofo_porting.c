@@ -13,6 +13,7 @@ typedef struct{
 }ofo_porting_para_t;
 
 static UART_HandleTypeDef huart2;
+static UART_HandleTypeDef huart4;
 static TIM_HandleTypeDef gprsTimerId;
 
 ofo_porting_para_t gOfoPortingPara;
@@ -63,20 +64,33 @@ void ofoP_gprs_uart_send(char *SendData, uint16_t SendLen)
 
 void ofoP_gps_uart_enable(void)
 {
-    //actually, in the reality pcb, gps and gprs use different uart
-    ofoP_gprs_uart_enable();
+		//__HAL_UART_ENABLE(&huart4);
+    __HAL_UART_ENABLE_IT(&huart4,UART_IT_RXNE);
 }
 
 void ofoP_gps_uart_disable(void)
 {
-    ofoP_gprs_uart_disable();
+    __HAL_UART_DISABLE_IT(&huart4,UART_IT_RXNE);
 }
 
 void ofoP_gps_uart_init(void *pUartRcvDeal)
 {
     gOfoPortingPara.gpsUartRcvDeal = (uartRcvDeal)pUartRcvDeal;
 
-    ofoP_gprs_uart_init(NULL);
+    huart4.Instance = UART4;
+    huart4.Init.BaudRate = 115200;
+    huart4.Init.WordLength = UART_WORDLENGTH_8B;
+    huart4.Init.StopBits = UART_STOPBITS_1;
+    huart4.Init.Parity = UART_PARITY_NONE;
+    huart4.Init.Mode = UART_MODE_TX_RX;
+    huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+    huart4.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+    huart4.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    if (HAL_UART_Init(&huart4) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
 }
 
 /**
@@ -97,11 +111,27 @@ void USART2_IRQHandler(void)
     { 
             RxBuf = USART2->RDR;
 
-            // TODO:only one is not null, the code just for test
             if (gOfoPortingPara.gprsUartRcvDeal != NULL)
             {
                 gOfoPortingPara.gprsUartRcvDeal(RxBuf);
             }
+    }
+}
+
+void UART4_IRQHandler(void)
+{
+    static uint8_t RxBuf;
+    
+  /* USER CODE BEGIN USART1_IRQn 0 */
+   if((UART4->ISR&UART_FLAG_ORE) != 0)
+    { 
+        UART4->ICR = UART_CLEAR_OREF;
+        /* do something */
+        
+    }
+    if((UART4->ISR&UART_FLAG_RXNE) != 0)
+    { 
+            RxBuf = UART4->RDR;
 
             if (gOfoPortingPara.gpsUartRcvDeal != NULL)
             {
@@ -109,6 +139,7 @@ void USART2_IRQHandler(void)
             }
     }
 }
+
 
 void ofoP_gprs_uart_send_timer_creat(void *pTimerHandle, uint16_t IntervalMs)
 {
@@ -179,10 +210,9 @@ void ofoP_gprs_stop_timer(void)
 
 void ofoP_gps_power_on(void)
 {
-    // TODO:just for testing on develop kit
-    ofoP_gprs_uart_send("AT+CGNSPWR=1\r\n", strlen("AT+CGNSPWR=1\r\n"));
-    ofoP_sleep_ms(1000);
-    ofoP_gprs_uart_send("AT+CGPSINF=32\r\n", strlen("AT+CGPSINF=32\r\n"));
+   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
+   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_SET);
+   ofoP_sleep_ms(2);
 }
 
 void ofoP_gps_power_off(void)
@@ -192,7 +222,9 @@ void ofoP_gps_power_off(void)
 
 void ofoP_gprs_power_on(void)
 {
-    
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+    ofoP_sleep_ms(200);
+    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_SET); 
 }
 
 void ofoP_gprs_power_off(void)

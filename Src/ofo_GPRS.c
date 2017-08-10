@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include "ofo_gprs.h"
 #include "ofo_porting.h"
+#include "stm32l4xx_hal.h"
+#include "stm32l4xx_hal_tim.h"
 
 
 #define DEBUG_SERVER_GPRS
@@ -291,9 +293,12 @@ static void _at_link_check_response_deal(void)
 {
     if (strstr(gGprsPara.responseBuffer, "OK\r\n") != NULL)
     {
-				memset(gGprsPara.responseBuffer, 0, sizeof(gGprsPara.responseBuffer));
-        gGprsPara.currentCmdId = AT_CLOSE_ECHO_CMD;
-        //nrf_gpio_pin_clear(UG_PWRKEY);
+		memset(gGprsPara.responseBuffer, 0, sizeof(gGprsPara.responseBuffer));
+
+        //gGprsPara.currentCmdId = AT_CLOSE_ECHO_CMD;
+        // TODO: for simcom test, should defined
+        gGprsPara.currentCmdId = AT_INVALID_CMD;
+        HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_RESET);
     }
 }
 
