@@ -40,7 +40,7 @@
 #include "stm32l4xx_hal.h"
 #include "ofo_gprs.h"
 #include "ofo_gps.h"
-
+#include "ofo_rtc.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -71,7 +71,6 @@ static void MX_GPIO_Init(void);
 
 int main(void)
 {
-
   /* USER CODE BEGIN 1 */
 
   /* USER CODE END 1 */
@@ -94,6 +93,10 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+
+  ofo_rtc_init();
+
+  ofoP_sleep_ms(5000);
 
 	// need to add user reponse deal code
   ofoE_gprs_init(NULL);

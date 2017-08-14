@@ -409,6 +409,21 @@
               <FileType>1</FileType>
               <FilePath>..\Src\ofo_porting.c</FilePath>
             </File>
+            <File>
+              <FileName>ofo_rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\ofo_rtc.c</FilePath>
+            </File>
+            <File>
+              <FileName>SEGGER_RTT.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\SEGGER_RTT.c</FilePath>
+            </File>
+            <File>
+              <FileName>SEGGER_RTT_printf.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\SEGGER_RTT_printf.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -498,6 +513,16 @@
               <FileName>stm32l4xx_hal_rcc.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Drivers/STM32L4xx_HAL_Driver/Src/stm32l4xx_hal_rcc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32l4xx_hal_rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_rtc.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32l4xx_hal_rtc_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\STM32L4xx_HAL_Driver\Src\stm32l4xx_hal_rtc_ex.c</FilePath>
             </File>
           </Files>
         </Group>
