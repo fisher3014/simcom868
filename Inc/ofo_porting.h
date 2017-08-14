@@ -22,4 +22,8 @@ extern void ofoP_gprs_uart_send_timer_creat(void *pTimerHandle, uint16_t Interva
 extern void ofoP_gprs_timer_start(void);
 extern void ofoP_gprs_stop_timer(void);
 
+void ofoP_debug_uart_init(void);
+void ofoP_debug_uart_send(char *SendData, uint16_t SendLen);
+
+
 #endif

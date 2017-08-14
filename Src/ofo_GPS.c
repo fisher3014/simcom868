@@ -30,13 +30,16 @@ void gps_uart_rx_data_deal(uint8_t rxData)
     
     if (((rcvBuf[index - 1] == 0x0A) && (rcvBuf[index - 2] == 0x0D)) || (index >= GPS_RX_BUF_MAX))
     {
+            // TODO: debug uart
+            ofoP_debug_uart_send(rcvBuf, strlen(rcvBuf));
+    
             /*Message ID,UTC,status(AorV),Latitude,N/S Indicator,Longitude,E/W Indicator,
             Speed Over Ground,Course Over Ground,Date,Magnetic Variation,East/West Indicator,
             Mode,Checksum*/
             //$GPRMC,083559.00,A,4717.11437,N,00833.91522,E,0.004,77.52,091202,,,A,V*57
             if (strstr((char *)rcvBuf, "RMC,") != NULL)
             {
-								char tmpBuf[GPS_RX_BUF_MAX] = {0};
+				char tmpBuf[GPS_RX_BUF_MAX] = {0};
                 char *pch = NULL;
                 uint8_t arrayIndex = 0;
 

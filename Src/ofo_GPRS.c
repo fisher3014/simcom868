@@ -298,7 +298,7 @@ static void _at_link_check_response_deal(void)
 		memset(gGprsPara.responseBuffer, 0, sizeof(gGprsPara.responseBuffer));
 
         //gGprsPara.currentCmdId = AT_CLOSE_ECHO_CMD;
-        SEGGER_RTT_printf(0, "power on gprs ok %d\n", ofo_get_rtc());
+        //SEGGER_RTT_printf(0, "power on gprs ok %d\n", ofo_get_rtc());
         // TODO: for simcom test, should defined
         gGprsPara.currentCmdId = AT_INVALID_CMD;
         HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8, GPIO_PIN_RESET);
@@ -809,7 +809,7 @@ int ofoE_gprs_close(void)
 
 static void _gprs_establish_connection(void)
 {
-    SEGGER_RTT_printf(0, "power on gprs %d\n", ofo_get_rtc());
+    //SEGGER_RTT_printf(0, "power on gprs %d\n", ofo_get_rtc());
     ofoP_gprs_power_on();
     ofoP_sleep_ms(100);
 

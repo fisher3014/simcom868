@@ -41,6 +41,7 @@
 #include "ofo_gprs.h"
 #include "ofo_gps.h"
 #include "ofo_rtc.h"
+#include "ofo_porting.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -94,20 +95,22 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
 
-  ofo_rtc_init();
+  //ofo_rtc_init();
 
-  ofoP_sleep_ms(5000);
+  //ofoP_sleep_ms(5000);
 
-	// need to add user reponse deal code
-  ofoE_gprs_init(NULL);
+  // need to add user reponse deal code
+  //ofoE_gprs_init(NULL);
+  
   ofoE_gps_init();
-
+  ofoP_debug_uart_init();
+	
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    ofoE_gprs_response_data_deal();
-    ofoE_gprs_http_request_send("{\"ID\":\"FBDE94A7AB6C\",\"Token\":\"0123456789012345\",\"CSQ\":\"16\",\"IMSI\":\"\",\"SIMVer\":\"418B03SIM868M32\",\"SPAddr\":\"\",\"ACTION\":\"0\",\"MCUVer\":\"ofoV1.0.8\",\"Vot\":\"7393\",\"3D\":\"0,0,0\",\"sa\":\"wljeFnnIzYSOpDACLsUzFw==\",\"STTime\":\"1483228800\",\"SPTime\":\"1483228800\",\"PWD\":\"\"}");
+    //ofoE_gprs_response_data_deal();
+    //ofoE_gprs_http_request_send("{\"ID\":\"FBDE94A7AB6C\",\"Token\":\"0123456789012345\",\"CSQ\":\"16\",\"IMSI\":\"\",\"SIMVer\":\"418B03SIM868M32\",\"SPAddr\":\"\",\"ACTION\":\"0\",\"MCUVer\":\"ofoV1.0.8\",\"Vot\":\"7393\",\"3D\":\"0,0,0\",\"sa\":\"wljeFnnIzYSOpDACLsUzFw==\",\"STTime\":\"1483228800\",\"SPTime\":\"1483228800\",\"PWD\":\"\"}");
   }
 }
 
@@ -218,7 +221,8 @@ static void MX_GPIO_Init(void)
   ofo_gprs_power_on_contorl_pin_init();
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
-
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
 }
 
 /* USER CODE BEGIN 4 */

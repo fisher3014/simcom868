@@ -18,6 +18,67 @@ static TIM_HandleTypeDef gprsTimerId;
 
 ofo_porting_para_t gOfoPortingPara;
 
+//start--------------------------------------mcu debug
+static UART_HandleTypeDef debugHuart5;
+
+void ofoP_debug_uart_enable(void)
+{
+    __HAL_UART_ENABLE_IT(&debugHuart5,UART_IT_RXNE);
+}
+
+void ofoP_debug_uart_disable(void)
+{
+    __HAL_UART_DISABLE_IT(&debugHuart5,UART_IT_RXNE);
+}
+
+void ofoP_debug_uart_init(void)
+{
+    debugHuart5.Instance = UART5;
+    debugHuart5.Init.BaudRate = 115200;
+    debugHuart5.Init.WordLength = UART_WORDLENGTH_8B;
+    debugHuart5.Init.StopBits = UART_STOPBITS_1;
+    debugHuart5.Init.Parity = UART_PARITY_NONE;
+    debugHuart5.Init.Mode = UART_MODE_TX_RX;
+    debugHuart5.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    debugHuart5.Init.OverSampling = UART_OVERSAMPLING_16;
+    debugHuart5.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+    debugHuart5.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+    if (HAL_UART_Init(&debugHuart5) != HAL_OK)
+    {
+        _Error_Handler(__FILE__, __LINE__);
+    }
+
+    ofoP_debug_uart_enable();
+}
+
+void ofoP_debug_uart_send(char *SendData, uint16_t SendLen)
+{
+    if(HAL_UART_Transmit(&debugHuart5, (uint8_t*)SendData, SendLen,100)!= HAL_OK)
+    {
+        Error_Handler();
+    }
+}
+
+void USART5_IRQHandler(void)
+{
+    static uint8_t RxBuf;
+    
+  /* USER CODE BEGIN USART1_IRQn 0 */
+   if((UART5->ISR&UART_FLAG_ORE) != 0)
+    { 
+        UART5->ICR = UART_CLEAR_OREF;
+        /* do something */
+        
+    }
+    if((UART5->ISR&UART_FLAG_RXNE) != 0)
+    { 
+            RxBuf = UART5->RDR;
+    }
+}
+
+
+//end--------------------------------------mcu debug
+
 void ofoP_sleep_ms(int timeMs)
 {
     HAL_Delay(timeMs);
@@ -212,12 +273,14 @@ void ofoP_gps_power_on(void)
 {
    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET); 
    HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_SET);
-   ofoP_sleep_ms(2);
+   ofoP_sleep_ms(100);
 }
 
 void ofoP_gps_power_off(void)
 {
-    
+   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET); 
+   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_7, GPIO_PIN_RESET);
+   ofoP_sleep_ms(100);
 }
 
 void ofoP_gprs_power_on(void)
@@ -229,7 +292,7 @@ void ofoP_gprs_power_on(void)
 
 void ofoP_gprs_power_off(void)
 {
-    
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
 }
 
 
